@@ -1,7 +1,11 @@
+import os
 import json
 import requests
+from dotenv import load_dotenv
 from datetime import datetime
 from common_tools.send_email import send_email
+
+load_dotenv()
 
 class Quotes:
     def __init__(self, market_index):
@@ -13,9 +17,14 @@ class Quotes:
             self.url = 'https://financialmodelingprep.com/api/v3/quote/%5EIXIC'
         else:
             raise ValueError('Invalid market index name!')
+
+        if os.getenv('VERSION') == 'local':
+            self.conf_path = 'conf/.quotes.json'
+        if os.getenv('VERSION') == 'production':
+            self.conf_path = '/home/ec2-user/ASMAT/conf/.quotes.json'
+
         self.mkt = market_index
-        self.FLOAT_THRESHOLD = 0.01
-        self.REPORT_FREQUENCY = 60
+        self.FLOAT_THRESHOLD = 0.005
 
     def get_quote(self):
         with requests.Session() as s:
@@ -24,12 +33,12 @@ class Quotes:
         return quote_data
     
     def load_last_quote(self):
-        with open('/home/ec2-user/ASMAT/conf/.quotes.json') as json_file:
+        with open(self.conf_path) as json_file:
             last_quote = json.load(json_file)
         return last_quote
     
     def record_quote(self, q):
-        with open('/home/ec2-user/ASMAT/conf/.quotes.json', 'w') as json_file:
+        with open(self.conf_path, 'w') as json_file:
             json.dump(q, json_file)
     
     def ts_to_date(self, ts):
@@ -38,28 +47,30 @@ class Quotes:
     def real_time_check(self):
         new_quote = self.get_quote()
         old_quote = self.load_last_quote()
-        float_rate = (new_quote.get('price') - old_quote.get('price')) / new_quote.get('open')
+        time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         if self.ts_to_date(new_quote.get('timestamp')) != self.ts_to_date(old_quote.get('timestamp')):
+            new_quote['dayOpen'] = new_quote['open']
             self.record_quote(new_quote)
+            print(f'[{time}] First quote of the day')
             return
 
-        if new_quote.get('dayHigh') > old_quote.get('dayHigh') \
-            or new_quote.get('dayLow') < old_quote.get('dayLow') \
-            or abs(float_rate) >= self.FLOAT_THRESHOLD:
+        float_rate = (new_quote.get('price') - old_quote.get('price')) / old_quote.get('dayOpen')
+        
+        if float_rate >= self.FLOAT_THRESHOLD:
+            send_email(
+                f'Subject: {self.mkt} Up {round(float_rate * 100, 2)}%\n\n{new_quote}'
+            )
+            new_quote['dayOpen'] = old_quote['dayOpen']
             self.record_quote(new_quote)
-            print('New quote recorded')
-
-        if abs(float_rate) >= self.FLOAT_THRESHOLD:
-            if float_rate < 0:
-                send_email(
-                    f"""
-                    Subject: {self.mkt} Down {float_rate}
-                    {new_quote}
-                    """)
-            if float_rate > 0:
-                send_email(
-                    f'Subject: {self.mkt} Up {float_rate} \
-                    {new_quote}'
-                    )
-            print('Email Sent')
+            print(f'[{time}] {self.mkt} Up {round(float_rate * 100, 2)}% | Alerting email sent | New quote recorded')
+            return
+        
+        if float_rate <= -self.FLOAT_THRESHOLD:
+            send_email(
+                f'Subject: {self.mkt} Down {round(float_rate * 100, 2)}%\n\n{new_quote}'
+            )
+            new_quote['dayOpen'] = old_quote['dayOpen']
+            self.record_quote(new_quote)
+            print(f'[{time}] {self.mkt} Down {round(float_rate * 100, 2)}% | Alerting email sent | New quote recorded')
+            return
