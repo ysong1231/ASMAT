@@ -24,12 +24,12 @@ class Quotes:
         return quote_data
     
     def load_last_quote(self):
-        with open('conf/.quotes.json') as json_file:
+        with open('/home/ec2-user/ASMAT/conf/.quotes.json') as json_file:
             last_quote = json.load(json_file)
         return last_quote
     
     def record_quote(self, q):
-        with open('conf/.quotes.json', 'w') as json_file:
+        with open('/home/ec2-user/ASMAT/conf/.quotes.json', 'w') as json_file:
             json.dump(q, json_file)
     
     def ts_to_date(self, ts):
