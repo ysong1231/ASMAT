@@ -24,7 +24,7 @@ class Quotes:
             self.conf_path = '/home/ec2-user/ASMAT/conf/.quotes.json'
 
         self.mkt = market_index
-        self.FLOAT_THRESHOLD = 0.005
+        self.FLOAT_THRESHOLD = 0.0033
 
     def get_quote(self):
         with requests.Session() as s:
@@ -48,7 +48,6 @@ class Quotes:
         new_quote = self.get_quote()
         old_quote = self.load_last_quote()
         time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
         if self.ts_to_date(new_quote.get('timestamp')) != self.ts_to_date(old_quote.get('timestamp')):
             new_quote['dayOpen'] = new_quote['open']
             self.record_quote(new_quote)

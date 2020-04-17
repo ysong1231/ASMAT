@@ -1,5 +1,5 @@
 from core.Quotes import Quotes
 
-sp500 = Quotes('S&P500')
+idx = Quotes('NASDAQ')
 #print(sp500.load_last_quote())
-sp500.real_time_check()
+idx.real_time_check()
