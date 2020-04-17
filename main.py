@@ -1,5 +1,15 @@
-from core.Quotes import Quotes
+from core.Markets import Markets
+from common_tools.send_email import send_email
+from common_tools.format_email_content import format_contents
 
-idx = Quotes('NASDAQ')
-#print(sp500.load_last_quote())
-idx.real_time_check()
+markets = {
+    'DOW': '%5EDJI',
+    'S&P500': '%5EGSPC',
+    'NASDAQ': '%5EIXIC'
+}
+idx = Markets(markets)
+alerts, quotes = idx.real_time_check()
+if alerts:
+    send_email('Subject:'+ ', '.join(alerts) + '\n\n' + f'{quotes}')
+
+print(format_contents(quotes))

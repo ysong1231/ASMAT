@@ -1,6 +1,7 @@
 import os
 import smtplib, ssl
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 port = 465
@@ -14,3 +15,6 @@ def send_email(message):
     with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message)
+        time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f'[{time}] Alerting Email Sent')
+    
