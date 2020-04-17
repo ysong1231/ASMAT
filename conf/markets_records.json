@@ -1,7 +1,7 @@
 {
     "NASDAQ": {
         "price": 8650.141,
-        "timestamp": 1587154007,
+        "timestamp": 1587154801,
         "lastAlertPrice": 8650.141,
         "lastAlertTimestamp": 1587153735,
         "last_max": 8650.141,
@@ -10,7 +10,7 @@
     },
     "S&P500": {
         "price": 2874.56,
-        "timestamp": 1587154007,
+        "timestamp": 1587154801,
         "lastAlertPrice": 2874.56,
         "lastAlertTimestamp": 1587153735,
         "last_max": 2874.56,
@@ -19,7 +19,7 @@
     },
     "DOW": {
         "price": 24242.49,
-        "timestamp": 1587154007,
+        "timestamp": 1587154801,
         "lastAlertPrice": 24242.49,
         "lastAlertTimestamp": 1587153735,
         "last_max": 24242.49,
