@@ -10,6 +10,4 @@ markets = {
 idx = Markets(markets)
 alerts, quotes = idx.real_time_check()
 if alerts:
-    send_email('Subject:'+ ', '.join(alerts) + '\n\n' + f'{quotes}')
-
-print(format_contents(quotes))
+    send_email('Subject:'+ ', '.join(alerts) + '\n\n' + format_contents(quotes))
