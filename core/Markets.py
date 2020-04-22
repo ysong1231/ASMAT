@@ -9,16 +9,16 @@ load_dotenv()
 class Markets:
     def __init__(self, markets):
         self.url = 'https://financialmodelingprep.com/api/v3/quote/' + ','.join([markets[m] for m in markets])
-        self.FLOAT_THRESHOLD = 0.0025
+        self.FLOAT_THRESHOLD = 0.0033
         self.markets = markets
         if os.getenv('VERSION') == 'local':
-            self.conf_path = 'conf/markets_records.json'
+            self.conf_path = 'archive/markets_records.json'
         if os.getenv('VERSION') == 'production':
-            self.conf_path = '/home/ec2-user/ASMAT/conf/markets_records.json'
+            self.conf_path = '/home/ec2-user/ASMAT/archive/markets_records.json'
         
     def get_quote(self):
         with requests.Session() as s:
-            request = s.get(self.url, timeout=15)
+            request = s.get(self.url, timeout = 15)
             quote_data = request.json()
         return quote_data
     
@@ -29,7 +29,7 @@ class Markets:
     
     def write_records(self, q):
         with open(self.conf_path, 'w') as json_file:
-            json.dump(q, json_file, indent=4)
+            json.dump(q, json_file, indent = 4)
     
     def ts_to_date(self, ts):
         return datetime.fromtimestamp(ts).strftime("%Y-%m-%d")

@@ -1,5 +1,6 @@
 *.ipynb
-conf/*.json
+archive/*.json
+archive/news/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
