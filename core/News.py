@@ -97,7 +97,7 @@ class WebpageNews:
             return None
     
     def write_news(self, news_to_write):
-        if not os.path.exists(self.news_records_path):
+        if not os.path.exists(os.path.dirname(self.news_records_path)):
             os.makedirs(os.path.dirname(self.news_records_path))
         with open(self.news_records_path, 'w', encoding = 'utf-8') as json_file:
             json.dump(news_to_write, json_file, indent = 4)
