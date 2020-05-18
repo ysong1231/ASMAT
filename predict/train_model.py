@@ -6,8 +6,8 @@ from preprocessing.PreProcess import DataProcessor
 configs = json.load(open('config.json', 'r'))
 
 dp = DataProcessor(
-    configs['data_dir'],
-    configs['data_train_tickers']
+    configs['train_data_dir'],
+    configs['data_tickers']
 )
 
 data_train, data_test = dp.split_data(configs['data_split'])

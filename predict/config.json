@@ -1,7 +1,7 @@
 {
-    "data_dir": "raw_data",
-    "data_as_of_date": "2020-5-11",
-    "data_train_tickers": ["^IXIC", "^GSPC", "^DJI", "^VIX"],
+    "train_data_dir": "raw_data",
+    "predict_data_dir": "/Users/mac/Desktop/ASMAT/prediction_data",
+    "data_tickers": ["^IXIC", "^GSPC", "^DJI", "^VIX"],
     "data_split": 0.95,
     "data_window_size": 50,
 
@@ -40,8 +40,10 @@
     "model_loss": "mse",
     "model_optimizer": "adam",
     
-    "training_epochs": 10,
+    "training_epochs": 5,
     "training_batch_size": 32,
-    "training_model_save_dir": "trained_models"
+    "training_model_save_dir": "trained_models",
+
+    "model_for_prediction": "/Users/mac/Desktop/ASMAT/predict/trained_models/17052020-223429-e5.h5"
 
 }

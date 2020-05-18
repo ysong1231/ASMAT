@@ -36,6 +36,11 @@ class DataProcessor:
             y.append(window[-1, 0])
         return np.array(x), np.array(y)
     
+    def prepare_prediction_data(self, data, window_size):
+        window = data[-window_size:]
+        window = self._normalize(window)
+        return np.array([window])
+    
     def _normalize(self, data):
         normalised_window = []
         for col in range(data.shape[1]):
