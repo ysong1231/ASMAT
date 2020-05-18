@@ -104,9 +104,9 @@ class HistoricalData:
         return f'https://query1.finance.yahoo.com/v7/finance/download/{ticker}?period1={start}&period2={end}&interval={interval}&events=history'
 
     def _make_filename(self, ticker, start, end, path):
-        return f'{path}/{ticker}.{start}~{end}.csv'
+        return f'{path}/{ticker}.csv'
 
-    def pull_historical_data(self, ticker, start, end, interval = '1d', save_path = '/Users/mac/Desktop/ASMAT/data'):
+    def pull_historical_data(self, ticker, start, end, interval = '1d', save_path = '/Users/mac/Desktop/ASMAT/predict/raw_data'):
         try:
             urllib.request.urlretrieve(
                 self._make_url(

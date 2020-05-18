@@ -1,0 +1,47 @@
+{
+    "data_dir": "raw_data",
+    "data_as_of_date": "2020-5-11",
+    "data_train_tickers": ["^IXIC", "^GSPC", "^DJI", "^VIX"],
+    "data_split": 0.95,
+    "data_window_size": 50,
+
+    "model_network": [
+        {
+            "type": "lstm",
+            "neurons": 100,
+            "input_timesteps": 49,
+            "input_dim": 19,
+            "return_seq": true
+        },
+        {
+            "type": "dropout",
+            "rate": 0.2
+        },
+        {
+            "type": "lstm",
+            "neurons": 100,
+            "return_seq": true
+        },
+        {
+            "type": "lstm",
+            "neurons": 100,
+            "return_seq": false
+        },
+        {
+            "type": "dropout",
+            "rate": 0.2
+        },
+        {
+            "type": "dense",
+            "neurons": 1,
+            "activation": "linear"
+        }
+    ],
+    "model_loss": "mse",
+    "model_optimizer": "adam",
+    
+    "training_epochs": 10,
+    "training_batch_size": 32,
+    "training_model_save_dir": "trained_models"
+
+}
