@@ -2,9 +2,6 @@
 archive/*.json
 archive/news/*
 archive/data/*
-.DS_Store
-predict/trained_models/*
-prediction_data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

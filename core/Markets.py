@@ -91,45 +91,4 @@ class Markets:
         self.write_records(records)
         return alerts, new_quote
 
-class HistoricalData:
-    def __init__(self):
-        pass
-    
-    def _date_to_ts(self, date):
-        return int(datetime.strptime(date, "%Y-%m-%d").timestamp())
 
-    def _make_url(self, ticker, start, end, interval):
-        start = self._date_to_ts(start)
-        end = self._date_to_ts(end)
-        return f'https://query1.finance.yahoo.com/v7/finance/download/{ticker}?period1={start}&period2={end}&interval={interval}&events=history'
-
-    def _make_filename(self, ticker, start, end, path):
-        return f'{path}/{ticker}.csv'
-
-    def pull_historical_data(self, ticker, start, end, interval = '1d', save_path = '/Users/mac/Desktop/ASMAT/predict/raw_data'):
-        try:
-            urllib.request.urlretrieve(
-                self._make_url(
-                    ticker,
-                    start,
-                    end,
-                    interval
-                ),
-                self._make_filename(
-                    ticker,
-                    start,
-                    end,
-                    save_path
-                )
-            )
-        except urllib.error.ContentTooShortError as e:
-            outfile = open(
-                self._make_filename(
-                    ticker,
-                    start,
-                    end,
-                    save_path
-                ), "w"
-            )
-            outfile.write(e.content)
-            outfile.close()
