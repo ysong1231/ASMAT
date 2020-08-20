@@ -1,0 +1,1 @@
+echo $(whoami) >> test.log

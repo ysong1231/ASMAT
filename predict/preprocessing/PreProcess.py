@@ -38,8 +38,9 @@ class DataProcessor:
     
     def prepare_prediction_data(self, data, window_size):
         window = data[-window_size:]
+        bench_mark = window[0]
         window = self._normalize(window)
-        return np.array([window])
+        return np.array([window]), bench_mark
     
     def _normalize(self, data):
         normalised_window = []
@@ -48,3 +49,10 @@ class DataProcessor:
             normalised_window.append(normalised_col)
         normalised_window = np.array(normalised_window).T # reshape and transpose array back into original multidimensional format
         return np.array(normalised_window)
+    
+    def interpret_prediction(self, bench_marks, original_data, prediction, predict_col = 0):
+        bench_mark = bench_marks[predict_col]
+        today = (original_data[-1, -1, predict_col] + 1) * bench_mark
+        prediction = (prediction + 1) * bench_mark
+        change = (prediction - today) / today * 100
+        print(f'Today: {round(today, 2)}, Next Day: {round(prediction, 2)}, Change Rate: {round(change, 2)}%')

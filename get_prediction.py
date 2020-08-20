@@ -3,7 +3,7 @@ import json
 from predict.model.Models import LSTM_Numerical
 from predict.preprocessing.PreProcess import DataProcessor
 
-configs = json.load(open('predict/config.json', 'r'))
+configs = json.load(open('/Users/mac/Desktop/ASMAT/predict/config.json', 'r'))
 
 model = LSTM_Numerical()
 model.load_model(configs['model_for_prediction'])
@@ -15,7 +15,7 @@ dp = DataProcessor(
 
 data, _ = dp.split_data(1)
 
-data = dp.prepare_prediction_data(data, 49)
+data, bench_marks = dp.prepare_prediction_data(data, 49)
 
-print(model.predict_next(data))
+dp.interpret_prediction(bench_marks, data, model.predict_next(data)[0])
 
