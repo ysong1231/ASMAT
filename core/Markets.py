@@ -1,94 +1,53 @@
 import os
-import json
-import urllib
-import requests
+import pandas as pd
+import yfinance as yf
 from dotenv import load_dotenv
-from datetime import datetime
+from sqlalchemy import create_engine
 
 load_dotenv()
 
-class Markets:
-    def __init__(self, markets):
-        self.url = 'https://financialmodelingprep.com/api/v3/quote/' + ','.join([markets[m] for m in markets])
-        self.FLOAT_THRESHOLD = 0.0033
-        self.markets = markets
-        if os.getenv('VERSION') == 'local':
-            self.conf_path = 'archive/markets_records.json'
-        if os.getenv('VERSION') == 'production':
-            self.conf_path = '/home/ec2-user/ASMAT/archive/markets_records.json'
+class StockData():
+    def __init__(self, start = None, end = None, interval = '1m', tickers = None):
+        self.start = start
+        self.end = end
+        self.interval = interval
+        self.tickers = tickers
+
+    def _yfinance_collector(self):
+        data = yf.download(
+            tickers = ' '.join(self.tickers),
+            start = self.start,
+            end = self.end,
+            interval = self.interval,
+            group_by = 'ticker',
+            threads = True
+        )
+        self.data = data
+
+    def _format_data(self):
+        df = pd.DataFrame()
+        for t in self.tickers:
+            self.data[(t, 'ticker')] = t
+            df = pd.concat([df, self.data[t]])
+        df = df.reset_index()
+        df['date'] = df['Datetime'].apply(lambda x: x.date())
+        df['time'] = df['Datetime'].apply(lambda x: x.time())
+        df = df.drop(['Datetime'], axis = 1).rename(columns = {'Open': 'open', 'High': 'high', 'Low': 'low', 'Close': 'close', 'Adj Close': 'adj_close', 'Volume': 'volume'}, inplace = False)
+        self.df = df
+
+    def _to_database(self):
+        DB_USER = os.getenv('DB_USER')
+        DB_PASSWORD = os.getenv('DB_PASSWORD')
+        DB_HOST = os.getenv('DB_HOST')
+        engine = create_engine(f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/stock')
+        self.df.to_sql(
+            'intraday', 
+            con = engine,
+            index = False,
+            if_exists = 'append'
+        )
         
-    def get_quote(self):
-        with requests.Session() as s:
-            request = s.get(self.url, timeout = 15)
-            quote_data = request.json()
-        return quote_data
-    
-    def load_record(self):
-        with open(self.conf_path) as json_file:
-            quote_record = json.load(json_file)
-        return quote_record
-    
-    def write_records(self, q):
-        with open(self.conf_path, 'w') as json_file:
-            json.dump(q, json_file, indent = 4)
-    
-    def ts_to_date(self, ts):
-        return datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
-
-    def real_time_check(self):
-        new_quote = self.get_quote()
-        records = self.load_record()
-        alerts = []
-        for i, idx in enumerate(self.markets):
-            if self.ts_to_date(new_quote[i]['timestamp']) != self.ts_to_date(records[idx]['timestamp']):
-                records[idx]['dayOpen'] = new_quote[i]['price']
-                records[idx]['price'] = new_quote[i]['price']
-                records[idx]['lastAlertPrice'] = new_quote[i]['price']
-                records[idx]['last_max'] = new_quote[i]['price']
-                records[idx]['last_min'] = new_quote[i]['price']
-                records[idx]['timestamp'] = new_quote[i]['timestamp']
-                records[idx]['lastAlertTimestamp'] = new_quote[i]['timestamp']
-                time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                print(f'[{time}] {idx} open price recorded')
-                continue
-            
-            change_from_last_alert = (new_quote[i]['price'] - records[idx]['lastAlertPrice']) / records[idx]['dayOpen']
-            change_from_last_max = (new_quote[i]['price'] - records[idx]['last_max']) / records[idx]['dayOpen']
-            change_from_last_mim = (new_quote[i]['price'] - records[idx]['last_min']) / records[idx]['dayOpen']
-
-            if change_from_last_alert >= self.FLOAT_THRESHOLD or change_from_last_mim >= self.FLOAT_THRESHOLD:
-                float_rate = min(change_from_last_alert, change_from_last_mim)
-                time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                print(f'[{time}] {idx} Up {round(float_rate * 100, 2)}%')
-                records[idx]['price'] = new_quote[i]['price']
-                records[idx]['lastAlertPrice'] = new_quote[i]['price']
-                records[idx]['last_max'] = new_quote[i]['price']
-                records[idx]['last_min'] = new_quote[i]['price']
-                records[idx]['timestamp'] = new_quote[i]['timestamp']
-                records[idx]['lastAlertTimestamp'] = new_quote[i]['timestamp']
-                alerts.append(f'{idx} Up {round(float_rate * 100, 2)}%')
-                continue
-
-            if change_from_last_alert <= -self.FLOAT_THRESHOLD or change_from_last_max <= -self.FLOAT_THRESHOLD:
-                float_rate = min(change_from_last_alert, change_from_last_max)
-                time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                print(f'[{time}] {idx} Down {round(float_rate * 100, 2)}%')
-                records[idx]['price'] = new_quote[i]['price']
-                records[idx]['lastAlertPrice'] = new_quote[i]['price']
-                records[idx]['last_max'] = new_quote[i]['price']
-                records[idx]['last_min'] = new_quote[i]['price']
-                records[idx]['timestamp'] = new_quote[i]['timestamp']
-                records[idx]['lastAlertTimestamp'] = new_quote[i]['timestamp']
-                alerts.append(f'{idx} Down {round(float_rate * 100, 2)}%')
-                continue
-
-            records[idx]['price'] = new_quote[i]['price']
-            records[idx]['last_max'] = max(new_quote[i]['price'], records[idx]['last_max'])
-            records[idx]['last_min'] = min(new_quote[i]['price'], records[idx]['last_min'])
-            records[idx]['timestamp'] = new_quote[i]['timestamp']
-            continue
-
-        self.write_records(records)
-        return alerts, new_quote
-
-
+    def collect(self):
+        self._yfinance_collector()
+        self._format_data()
+        self._to_database()

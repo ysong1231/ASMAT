@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd ~
-python3 ~/ASMAT/collect_data.py
+python ~/ASMAT/collect_data.py
